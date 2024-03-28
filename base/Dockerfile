@@ -48,7 +48,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         wget
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        openjdk-11-jdk
+        openjdk-8-jdk
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
