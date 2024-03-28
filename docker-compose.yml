@@ -9,7 +9,6 @@ services:
       - postgres_pgdata:/var/lib/postgresql/data/pgdata
     env_file:
       - ./.env
-    TZ: "Asia/Jakarta"
     networks:
       bigdatacluster:
         aliases:
@@ -23,9 +22,11 @@ services:
       PGADMIN_LISTEN_PORT: 5050
     ports:
       - "5050:5050"
-    TZ: "Asia/Jakarta"
     networks:
-      bigdatacluster
+      bigdatacluster:
+        aliases:
+           - pgpadmin.bigdatacluster.com
+
   redis:
     image: bigdata-redis:0.2
     container_name: redis
@@ -41,7 +42,6 @@ services:
         aliases:
           - redis.bigdatacluster.com
     command: redis-server
-    TZ: "Asia/Jakarta"
 
   zknode1:
     image: zookeeper
@@ -58,7 +58,6 @@ services:
       bigdatacluster:
         aliases:
          - zknode1.bigdatacluster.com
-    TZ: "Asia/Jakarta"
     environment:
        ZOO_MY_ID: 1
        ZOO_SERVERS: server.1=zknode1.bigdatacluster:2888:3888 server.2=zknode2.bigdatacluster:2888:3888 server.3=zknode3.bigdatacluster:2888:3888
@@ -76,7 +75,6 @@ services:
       - zknode2_log:/datalog
     env_file:
       - ./.env
-    TZ: "Asia/Jakarta"
     networks:
       bigdatacluster:
         aliases:
@@ -99,7 +97,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
     networks:
       bigdatacluster:
         aliases:
@@ -123,7 +120,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
     depends_on:
       - zknode1
       - zknode2
@@ -147,7 +143,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
     depends_on:
       - zknode1
       - zknode2
@@ -172,7 +167,6 @@ services:
       - zknode1
       - zknode2
       - zknode3
-    TZ: "Asia/Jakarta"
     environment:
       KAFKA_HOST: kafka3.bigdatacluster
       KAFKA_PORT: 9092
@@ -192,7 +186,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
     ports:
        - "80:80"
        - "8042:8042"
@@ -248,7 +241,6 @@ services:
       - ./bigdata-cluster.env
       - ./.env
     user: "1000"
-    TZ: "Asia/Jakarta"
     command: webserver
 
   airflow-scheduler:
@@ -274,7 +266,6 @@ services:
       - ./.env
     user: "1000"
     command: scheduler
-    TZ: "Asia/Jakarta"
 
   airflow-worker1:
     image: airflow-worker:0.2
@@ -299,7 +290,6 @@ services:
       - ./.env
     user: "1000"
     command: worker
-    TZ: "Asia/Jakarta"
       
   hadoop-namenode:
     image: hadoop-namenode:0.2
@@ -318,7 +308,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   hadoop-datanode1:
     image: hadoop-datanode:0.2
@@ -338,7 +327,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   hadoop-datanode2:
     image: hadoop-datanode:0.2
@@ -358,7 +346,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
 
   hadoop-datanode3:
@@ -379,8 +366,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
-
 
   yarn-resourcemanager:
     image: yarn-resourcemanager:0.2
@@ -398,7 +383,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
   
   yarn-historyserver:
     image: yarn-historyserver:0.2
@@ -418,8 +402,8 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
-  
+
+
   yarn-nodemanager1:
     image: yarn-nodemanager:0.2
     container_name: yarn-nodemanager1
@@ -436,7 +420,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   yarn-nodemanager2:
     image: yarn-nodemanager:0.2
@@ -454,7 +437,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   yarn-nodemanager3:
     image: yarn-nodemanager:0.2
@@ -472,7 +454,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
   
   hive-metastore:
     image: hive-metastore:0.2
@@ -491,7 +472,6 @@ services:
       - ./bigdata-cluster.env
       - ./.env
     command: /opt/hive/bin/hive --service metastore
-    TZ: "Asia/Jakarta"
 
   hive-server:
     image: hive-base:0.2
@@ -509,7 +489,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   spark-master:
     image: spark-master:0.2
@@ -529,7 +508,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   spark-worker1:
     image: spark-worker:0.2
@@ -551,7 +529,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   spark-worker2:
     image: spark-worker:0.2
@@ -573,7 +550,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
   spark-worker3:
     image: spark-worker:0.2
@@ -595,7 +571,6 @@ services:
     env_file:
       - ./bigdata-cluster.env
       - ./.env
-    TZ: "Asia/Jakarta"
 
 volumes:
   redis_data:
