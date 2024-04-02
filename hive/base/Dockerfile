@@ -3,7 +3,6 @@ FROM hadoop-base:0.2
 LABEL Description="This is the base image for Hive Datawarehouse" \
       Author="Semesta Arus <bigdata0124@gmail.com>"
 
-
 ENV HIVE_VERSION 3.1.3
 
 ENV HIVE_HOME /opt/hive

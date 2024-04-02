@@ -13,6 +13,7 @@ services:
       bigdatacluster:
         aliases:
            - postgres.bigdatacluster.com
+  
   pgadmin:
     image: dpage/pgadmin4
     restart: always
@@ -26,6 +27,28 @@ services:
       bigdatacluster:
         aliases:
            - pgpadmin.bigdatacluster.com
+  
+  hue:
+    image: gethue/hue:latest
+    container_name: hue
+    hostname: hue.bigdatacluster
+    ports:
+      - "8888:8888"
+    volumes:
+      - hue_data:/usr/share/hue/desktop
+    networks:
+      bigdatacluster:
+        aliases:
+          - hue.bigdatacluster.com
+    environment:
+      - HUE_DATABASE_ENGINE=postgresql
+      - HUE_DATABASE_HOST=postgres.bigdatacluster
+      - HUE_DATABASE_PORT=5432
+      - HUE_DATABASE_NAME=huedb
+      - HUE_DATABASE_USERNAME=huseuser
+      - HUE_DATABASE_PASSWORD=hue12!
+    depends_on:
+      - postgres
 
   redis:
     image: bigdata-redis:0.2
@@ -236,7 +259,8 @@ services:
           aliases:
             - airflowwebui.bigdatacluster.com
     environment:
-      - CLUSTER_NAME=bigdatacluster
+        - CLUSTER_NAME=bigdatacluster
+        - PYTHONWARNINGS=ignore::SAWarning
     env_file:
       - ./bigdata-cluster.env
       - ./.env
@@ -649,6 +673,11 @@ volumes:
          driver: local-persist
          driver_opts:
                mountpoint: /data2/dockervolumes/spark/worker3/logs
+  hue_data:
+        driver: local-persist
+        driver_opts:
+               mountpoint: /data1/dockervolumes/hue/data
+  
 networks:
   bigdatacluster:
     external: true

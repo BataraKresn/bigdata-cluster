@@ -1,23 +1,20 @@
 FROM bigdata-baseimg:0.2
 
-LABEL Description="Base Image for Airflow Nodes" \
-      Author="Pavan Keerthi <pavan.keerthi@gmail.com>"
+# Update Python version
+RUN apt-get update && apt-get install -y python3.7 python3-pip
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        rsync \
-        locales \
-    && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
-    && locale-gen \
-    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+# Install setuptools
+RUN python3.7 -m pip install --upgrade pip setuptools
 
-# Define en_US.
-ENV LANGUAGE en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LC_CTYPE en_US.UTF-8
-ENV LC_MESSAGES en_US.UTF-8
-ENV SQLALCHEMY_WARN_20=1
+# Pin SQLAlchemy version to <2.0 and install other dependencies
+RUN python3.7 -m pip install 'sqlalchemy<2.0' 'cryptography==3.4.8'
+
+# Set environment variables
+ENV LC_ALL=C.UTF-8
+ENV LANG=en_US.UTF-8
 ENV SQLALCHEMY_SILENCE_UBER_WARNING=1
+ENV SQLALCHEMY_WARN_20=1
+ENV PYTHONWARNINGS="ignore:MovedIn20Warning"
 
 # Airflow Config
 ARG AIRFLOW_VERSION=2.2.3
@@ -28,17 +25,37 @@ ENV AIRFLOW_HOME=${AIRFLOW_USER_HOME}
 ENV AIRFLOW_DAG=${AIRFLOW_HOME}/dags
 ENV AIRFLOW_LOG=${AIRFLOW_HOME}/logs
 
-# Install Python Modules
-RUN python3.6 -m pip install -U setuptools
-RUN python3.6 -m pip install celery[redis]==4.1.1
-RUN python3.6 -m pip install apache-airflow==$AIRFLOW_VERSION
-RUN python3.6 -m pip install psycopg2-binary
-RUN python3.6 -m pip install SQLAlchemy
-RUN python3.6 -m pip install pyOpenSSL
-RUN python3.6 -m pip install ndg-httpsclient
-RUN python3.6 -m pip install pyasn1
+# Install Airflow and other Python dependencies
+ARG AIRFLOW_VERSION=2.2.3
+RUN python3.7 -m pip install \
+    apache-airflow==$AIRFLOW_VERSION \
+    celery[redis]==4.1.1 \
+    psycopg2-binary \
+    "SQLAlchemy<2.0" \
+    connexion[swagger-ui] \
+    pyOpenSSL \
+    ndg-httpsclient \
+    pyasn1 \
+    apache-airflow-providers-redis \
+    jinja2==2.11.3 \
+    markupsafe==2.0.1
 
-# Airflow Setup
-RUN useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow
-COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
-RUN chown -R airflow: ${AIRFLOW_HOME}
+# Copy airflow.cfg
+COPY airflow.cfg /home/airflow/airflow.cfg
+
+# Create airflow user and set permissions
+RUN useradd -ms /bin/bash -d /home/airflow airflow \
+    && chown -R airflow: /home/airflow
+
+# Add commands to create airflow user and set permissions
+# Replace <USERNAME>, <FIRST_NAME>, <LAST_NAME>, and <EMAIL> with actual values
+# RUN airflow users create \
+#     --username mybigdata \
+#     --firstname John \
+#     --lastname Data \
+#     --role Admin \
+#     --email bigdata0124@gmail.com
+
+# Modify airflow.cfg using sed commands
+RUN sed -i 's/^xcom_backend =.*/xcom_backend = airflow.providers.redis.xcom.RedisXCom/' /home/airflow/airflow.cfg && \
+    sed -i 's/^result_backend =.*/result_backend = db+redis:\/\/:@redis:6379\/0/' /home/airflow/airflow.cfg
